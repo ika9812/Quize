@@ -1,94 +1,75 @@
 using UnityEngine;
+using UnityEngine.UI;
 
-enum GameState
+
+public class QuizManager : MonoBehaviour
 {
-    countdown,
-    question,
-    anser,
-    judgment,
-    openscore
-}
+    [System.Serializable]
+    public class QuizData
+    {
+        public string question;
+        public string answera;
+        public string answerb;
+        public int correct;//0=a,1=b
+    }
 
-public class QuizManager : MasterQuize
-{
-    [SerializeField] private QuizeData data;
+    [SerializeField] QuizData[] data;
+    [SerializeField] Transform player;
+    [SerializeField] Text questontext;
+    [SerializeField] Text answertexta;
+    [SerializeField] Text answertextb;
+    [SerializeField] Transform answerafloor;
+    [SerializeField] Transform answerbfloor;
 
-    GameState gameState;
+    int index = 0;
+    bool answerd;
 
-    int missCount = 0;
     void Start()
     {
-        gameState = GameState.countdown;
+        ShowQuestion();
+    }
+    
+    void ShowQuestion()
+    {
+        answerd = false;
+        var q = data[index];
+        questontext.text = q.question;
+        answertexta.text = "A" + q.answera;
+        answertextb.text = "B" + q.answerb;
     }
 
-
-    void Update()
+    public void CheckAnswer(int check)
     {
+        if (answerd) return;
+        answerd = true;
+        var q= data[index];
+        bool correct = (check==q.correct);
+        questontext.text = correct ? "正解" : "不正解";
+        Invoke(nameof(NextQuestion), 2f);
+    }
 
-        switch (gameState)
+    void NextQuestion()
+    {
+        index ++;
+        if(index>=data.Length)
         {
-            case GameState.countdown:
-                CountDown();
-                break;
-            case GameState.question:
-                Question();
-                break;
-            case GameState.anser:
-                Anser();
-                break;
-            case GameState.judgment:
-                Judgment();
-                break;
-            case GameState.openscore:
-                OpenScore();
-                break;
-        }
-
-    }
-
-    /// <summary>
-    /// ゲーム開始時のカウントダウン
-    /// </summary>
-    void CountDown()
-    {
-        gameState = GameState.question;
-    }
-    /// <summary>
-    /// 問題文を表示
-    /// </summary>
-
-    void Question()
-    {
-        gameState = GameState.anser;
-    }
-
-    /// <summary>
-    /// 実際にプレイヤーが動いて回答
-    /// </summary>
-    void Anser()
-    {
-        gameState = GameState.judgment;
-    }
-    /// <summary>
-    /// 制誤判定、ゲームオーバー判定
-    /// </summary>
-    void Judgment()
-    {
-        if (missCount > 0)
-        {
-            gameState = GameState.openscore;
+            questontext.text = "全ての問題が終わりました!";
+            answertexta.text = "";
+            answertextb.text = "";
         }
         else
         {
-            gameState = GameState.question;
+            ShowQuestion();
         }
     }
-    /// <summary>
-    /// スコア表示
-    /// </summary>
-    void OpenScore()
+
+    private void OnTriggerEnter(Collider other)
     {
+        if(answerd || other.transform!=player) return;
+        if (other.transform.IsChildOf(answerafloor)) CheckAnswer(0);
+        if (other.transform.IsChildOf(answerbfloor)) CheckAnswer(1);
 
     }
 }
+
 

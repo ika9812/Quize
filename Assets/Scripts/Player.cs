@@ -5,17 +5,29 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
+    [SerializeField] private PlayerInput PlayerInput;
+
+    [SerializeField] float sp;
 
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    Rigidbody rb;
+
+    private void Awake()
     {
-        
+        PlayerInput = GetComponent<PlayerInput>();
+        rb = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void FixedUpdate()
     {
+        Vector2 move = PlayerInput.actions["Move"].ReadValue<Vector2>();
+
+        Vector3 moveDir =
+        transform.right * move.x +
+        transform.forward * move.y;
+
+        rb.linearVelocity = new Vector3(moveDir.x * sp, rb.linearVelocity.y, moveDir.z * sp);
+
         
     }
 }
